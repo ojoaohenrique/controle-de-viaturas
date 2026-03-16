@@ -58,12 +58,12 @@
                                 <input type="number" id="km_saida" name="km_saida" required>
                             </div>
                             <div class="form-group">
-                                <label for="protocolo" class="required">Protocolo (OPCIONAL)</label>
+                                <label for="protocolo">Protocolo (Opcional)</label>
                                 <input type="number" id="protocolo" name="protocolo">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="inspetor" class="required">inspetor</label>
+                            <label for="inspetor" class="required">Inspetor</label>
                             <select id="inspetor" name="inspetor" required>
                                 <option value="">Selecione...</option>
                             </select>
@@ -76,7 +76,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="patrulheiro" class="required">patrulheiro</label>
+                            <label for="patrulheiro" class="required">Patrulheiro</label>
                             <select id="patrulheiro" name="patrulheiro" required>
                                 <option value="">Selecione...</option>
                             </select>
@@ -244,6 +244,7 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="/js/env.js"></script>
     <script>
         window.ENV_SUPABASE_URL = window.ENV_SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '';
         window.ENV_SUPABASE_ANON_KEY = window.ENV_SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || '';

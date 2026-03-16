@@ -55,11 +55,11 @@ def create_app() -> Flask:
     @app.route("/js/env.js")
     def env_js():
         """Serves frontend environment variables as a JavaScript file."""
-        # Note: Ensure the SUPABASE_KEY environment variable is set to the public 'anon' key,
+        # Note: Ensure the SUPABASE_ANON_KEY environment variable is set to the public 'anon' key,
         # as this will be exposed on the client side.
         content = f"""
 window.ENV_SUPABASE_URL = "{os.getenv('SUPABASE_URL', '')}";
-window.ENV_SUPABASE_ANON_KEY = "{os.getenv('SUPABASE_KEY', '')}";
+window.ENV_SUPABASE_ANON_KEY = "{os.getenv('SUPABASE_ANON_KEY', '')}";
 window.ENV_API_BASE_URL = "/api";
 """
         return Response(content, mimetype='application/javascript')
