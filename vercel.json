@@ -1,13 +1,22 @@
 {
-    "functions": {
-        "api/index.py": {
-            "runtime": "python3.9"
+    "builds": [
+        {
+            "src": "api/index.py",
+            "use": "@vercel/python"
         }
-    },
+    ],
     "routes": [
         {
-            "src": "/(.*)",
+            "src": "/api/(.*)",
             "dest": "api/index.py"
+        },
+        {
+            "src": "/js/env.js",
+            "dest": "api/index.py"
+        },
+        {
+            "src": "/(.+)",
+            "dest": "/frontend/$1"
         }
     ],
     "env": {
