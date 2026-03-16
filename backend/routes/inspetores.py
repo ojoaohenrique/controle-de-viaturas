@@ -1,6 +1,13 @@
 from flask import Blueprint, jsonify, request
 
-from supabase_client import supabase
+try:
+    # Tenta importar o cliente Supabase
+    from supabase_client import supabase
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    # Se a importação falhar, marca como indisponível
+    supabase = None
+    SUPABASE_AVAILABLE = False
 
 # Blueprint dedicado à rota de inspetores
 inspetores_bp = Blueprint("inspetores", __name__)
@@ -11,6 +18,9 @@ def listar_inspetores():
     Busca todos os registros da tabela 'inspetores' no Supabase.
     Retorna a lista de registros como uma lista de dicionários.
     """
+    if not SUPABASE_AVAILABLE:
+        raise ConnectionError("A conexão com o Supabase não foi configurada corretamente.")
+
     response = supabase.table("inspetores").select("*").execute()
     # response.data já é uma lista de dicts vinda do Supabase Python client
     return response.data or []
@@ -21,6 +31,9 @@ def adicionar_inspetor(data):
     Insere um novo registro na tabela 'inspetores'.
     Espera um dicionário com os campos compatíveis com a tabela.
     """
+    if not SUPABASE_AVAILABLE:
+        raise ConnectionError("A conexão com o Supabase não foi configurada corretamente.")
+
     response = supabase.table("inspetores").insert(data).execute()
     # Retorna o primeiro registro inserido (Supabase devolve lista)
     if response.data:
@@ -37,7 +50,9 @@ def get_inspetores():
     try:
         inspetores = listar_inspetores()
         return jsonify(inspetores), 200
-    except Exception as exc:  # pragma: no cover - rota de exemplo
+    except ConnectionError as conn_err:
+        return jsonify({"error": str(conn_err)}), 503  # Service Unavailable
+    except Exception as exc:
         return jsonify({"error": str(exc)}), 500
 
 
@@ -60,6 +75,7 @@ def post_inspetor():
 
         novo = adicionar_inspetor(payload)
         return jsonify(novo), 201
-    except Exception as exc:  # pragma: no cover - rota de exemplo
+    except ConnectionError as conn_err:
+        return jsonify({"error": str(conn_err)}), 503  # Service Unavailable
+    except Exception as exc:
         return jsonify({"error": str(exc)}), 500
-
