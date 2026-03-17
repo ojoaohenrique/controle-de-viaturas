@@ -19,8 +19,8 @@ def create_app() -> Flask:
     load_dotenv(os.path.join(base_dir, ".env"))
     load_dotenv(os.path.join(base_dir, '..', '.env'))
 
-    # The static_folder path is relative to this file's location in /backend
-    app = Flask(__name__, static_folder='../frontend')
+    frontend_dir = os.path.abspath(os.path.join(base_dir, '..', 'frontend'))
+    app = Flask(__name__, static_folder=frontend_dir, static_url_path='')
 
     app.config["JSON_SORT_KEYS"] = False
 
@@ -70,11 +70,12 @@ window.ENV_API_BASE_URL = "/api";
     def serve(path):
         """Serves static files and the SPA's entry point."""
         static_folder = app.static_folder
-        # If the path points to an existing file, serve it.
-        if path != "" and os.path.exists(os.path.join(static_folder, path)):
+        abs_path = os.path.join(static_folder, path)
+
+        if path != '' and os.path.isfile(abs_path):
             return send_from_directory(static_folder, path)
-        # Otherwise, serve the SPA's entry point for client-side routing.
-        else:
-            return send_from_directory(static_folder, 'login.html')
+
+        # SPA entry: login page
+        return send_from_directory(static_folder, 'login.html')
 
     return app
