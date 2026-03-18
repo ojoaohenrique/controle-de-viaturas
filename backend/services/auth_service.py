@@ -15,6 +15,11 @@ def _get_auth_client() -> Client:
     Cria uma instância única do cliente Supabase para autenticação.
     O uso de lru_cache evita a criação de um novo cliente em cada request.
     """
+    # Remove variáveis de proxy que causam erro em versões instáveis do supabase-py
+    for env_var in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+        if env_var in os.environ:
+            del os.environ[env_var]
+
     url = os.getenv("SUPABASE_URL")
     key = os.getenv("SUPABASE_ANON_KEY")
     if not url or not key:

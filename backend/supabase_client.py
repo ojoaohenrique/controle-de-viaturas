@@ -16,6 +16,11 @@ def _get_env_vars():
 @lru_cache(maxsize=1)
 def get_supabase_client():
     """Retorna o cliente Supabase. Lança RuntimeError em caso de configuração incorreta."""
+    # Remove variáveis de proxy que causam erro em versões instáveis do supabase-py
+    for env_var in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"]:
+        if env_var in os.environ:
+            del os.environ[env_var]
+
     supabase_url, supabase_service_key = _get_env_vars()
 
     if not supabase_url or not supabase_service_key:
