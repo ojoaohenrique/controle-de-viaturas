@@ -25,63 +25,72 @@ function initSistema() {
     const filtroBuscaInput = document.getElementById('filtroBusca');
 
     const formAbastecimento = document.getElementById('abastecimentoForm');
-    const tabelaAbastecimentoBody = document
-        .getElementById('tabelaAbastecimento')
-        .querySelector('tbody');
-
-    if (!formSaida || !tabelaSaidasBody || !voltaModal || !modalFotoInput || !modalComentariosInput) {
-        console.error('Elemento essencial não encontrado. Verifique o HTML.');
-        return;
-    }
+    const tabelaAbastecimento = document.getElementById('tabelaAbastecimento');
+    const tabelaAbastecimentoBody = tabelaAbastecimento ? tabelaAbastecimento.querySelector('tbody') : null;
 
     preencherCombos();
     carregarDados();
     atualizarContadores();
 
-    formSaida.addEventListener('submit', function (event) {
-        registrarSaida(event, {
-            formSaida,
-            tabelaSaidasBody,
+    if (formSaida && tabelaSaidasBody) {
+        formSaida.addEventListener('submit', function (event) {
+            registrarSaida(event, {
+                formSaida,
+                tabelaSaidasBody,
+            });
         });
-    });
+    }
 
-    tabelaSaidasBody.addEventListener('click', function (event) {
-        const btn = event.target.closest('.btn-volta');
-        if (!btn) return;
+    if (tabelaSaidasBody) {
+        tabelaSaidasBody.addEventListener('click', function (event) {
+            const btn = event.target.closest('.btn-volta');
+            if (!btn) return;
 
-        abrirModalVolta(btn.dataset.rowId, {
-            modalViaturaInfo,
-            modalRowIdInput,
-            modalKmChegadaInput,
-            modalErro,
-            modalFotoInput,
-            modalComentariosInput,
-            voltaModal,
+            if (!voltaModal || !modalViaturaInfo || !modalRowIdInput || !modalKmChegadaInput || !modalErro || !modalFotoInput || !modalComentariosInput) {
+                console.error('Elementos do modal não encontrados na página.');
+                return;
+            }
+
+            abrirModalVolta(btn.dataset.rowId, {
+                modalViaturaInfo,
+                modalRowIdInput,
+                modalKmChegadaInput,
+                modalErro,
+                modalFotoInput,
+                modalComentariosInput,
+                voltaModal,
+            });
         });
-    });
+    }
 
-    modalCancelarBtn.addEventListener('click', function () {
-        voltaModal.style.display = 'none';
-    });
-
-    voltaModal.addEventListener('click', function (event) {
-        if (event.target === voltaModal) {
+    if (modalCancelarBtn && voltaModal) {
+        modalCancelarBtn.addEventListener('click', function () {
             voltaModal.style.display = 'none';
-        }
-    });
-
-    modalSalvarBtn.addEventListener('click', function () {
-        registrarVolta({
-            modalRowIdInput,
-            modalKmChegadaInput,
-            modalErro,
-            modalFotoInput,
-            modalComentariosInput,
-            voltaModal,
         });
-    });
+    }
 
-    if (formAbastecimento) {
+    if (voltaModal) {
+        voltaModal.addEventListener('click', function (event) {
+            if (event.target === voltaModal) {
+                voltaModal.style.display = 'none';
+            }
+        });
+    }
+
+    if (modalSalvarBtn && voltaModal) {
+        modalSalvarBtn.addEventListener('click', function () {
+            registrarVolta({
+                modalRowIdInput,
+                modalKmChegadaInput,
+                modalErro,
+                modalFotoInput,
+                modalComentariosInput,
+                voltaModal,
+            });
+        });
+    }
+
+    if (formAbastecimento && tabelaAbastecimentoBody) {
         configurarAbastecimento({
             formAbastecimento,
             tabelaAbastecimentoBody,
@@ -350,9 +359,8 @@ function configurarAbastecimento({ formAbastecimento, tabelaAbastecimentoBody })
 
 function salvarDados() {
     const tabelaSaidasBody = document.getElementById('tabelaSaidasBody');
-    const tabelaAbastecimentoBody = document
-        .getElementById('tabelaAbastecimento')
-        .querySelector('tbody');
+    const tabelaAbastecimento = document.getElementById('tabelaAbastecimento');
+    const tabelaAbastecimentoBody = tabelaAbastecimento ? tabelaAbastecimento.querySelector('tbody') : null;
 
     if (tabelaSaidasBody) {
         localStorage.setItem('saidasViaturas', tabelaSaidasBody.innerHTML);
@@ -368,9 +376,8 @@ function salvarDados() {
 
 function carregarDados() {
     const tabelaSaidasBody = document.getElementById('tabelaSaidasBody');
-    const tabelaAbastecimentoBody = document
-        .getElementById('tabelaAbastecimento')
-        .querySelector('tbody');
+    const tabelaAbastecimento = document.getElementById('tabelaAbastecimento');
+    const tabelaAbastecimentoBody = tabelaAbastecimento ? tabelaAbastecimento.querySelector('tbody') : null;
 
     const saidasHTML = localStorage.getItem('saidasViaturas');
     const abastecimentosHTML = localStorage.getItem('abastecimentosViaturas');
