@@ -29,7 +29,7 @@
         'PATROLHEIRO REIS',
     ];
 
-    function initSistema() {
+    async function initSistema() {
         const formSaida = document.getElementById('saidaViaturaForm');
         const tabelaSaidasBody = document.getElementById('tabelaSaidasBody');
         const formAbastecimento = document.getElementById('abastecimentoForm');
@@ -56,7 +56,7 @@
         }
 
         preencherCombos();
-        carregarDados();
+        await carregarDados();
         atualizarContadores();
 
         formSaida.addEventListener('submit', function (event) {
@@ -299,16 +299,16 @@
     }
 
     function configurarAbastecimento({ formAbastecimento, tabelaAbastecimentoBody }) {
-        const kmAbastecimento = formAbastecimento.km_abastecimento;
-        const kmAtual = formAbastecimento.km_atual;
-        const litros = formAbastecimento.litros;
+        const kmAbastecimentoInput = formAbastecimento.km_abastecimento;
+        const kmAtualInput = formAbastecimento.km_atual;
+        const litrosInput = formAbastecimento.litros;
         const kmRodadoInput = document.getElementById('km_rodado');
         const mediaInput = document.getElementById('media_km_l');
 
         function calcularValores() {
-            const km1 = parseFloat(kmAbastecimento.value);
-            const km2 = parseFloat(kmAtual.value);
-            const litrosVal = parseFloat(litros.value);
+            const km1 = parseFloat(kmAbastecimentoInput.value);
+            const km2 = parseFloat(kmAtualInput.value);
+            const litrosVal = parseFloat(litrosInput.value);
 
             if (!isNaN(km1) && !isNaN(km2) && km2 > km1) {
                 const rodado = km2 - km1;
@@ -324,25 +324,64 @@
             }
         }
 
-        [kmAbastecimento, kmAtual, litros].forEach(function (input) {
+        [kmAbastecimentoInput, kmAtualInput, litrosInput].forEach(function (input) {
             if (input) {
                 input.addEventListener('input', calcularValores);
             }
         });
 
-        formAbastecimento.addEventListener('submit', function (event) {
+        formAbastecimento.addEventListener('submit', async function (event) {
             event.preventDefault();
             if (!tabelaAbastecimentoBody) return;
 
+            const viatura = formAbastecimento.viatura_abastecimento.value;
+            const data = formAbastecimento.data_abastecimento.value;
+            const km_abastecimento = parseFloat(kmAbastecimentoInput.value);
+            const km_atual = parseFloat(kmAtualInput.value);
+            const litros = parseFloat(litrosInput.value);
+
+            if (km_atual < km_abastecimento) {
+                alert('O KM atual não pode ser menor que o KM do abastecimento.');
+                return;
+            }
+
+            if (litros <= 0) {
+                alert('A quantidade de litros deve ser maior que zero.');
+                return;
+            }
+
+            const km_rodado = km_atual - km_abastecimento;
+            const media = km_rodado / litros;
+
+            const novoAbastecimento = {
+                viatura,
+                data,
+                km_abastecimento,
+                km_atual,
+                litros,
+                km_rodado,
+                media: media.toFixed(2),
+            };
+
+            const { data: insertedData, error } = await supabase
+                .from('abastecimentos')
+                .insert([novoAbastecimento]);
+
+            if (error) {
+                console.error('Erro ao salvar abastecimento:', error);
+                alert('Não foi possível salvar o abastecimento. Verifique o console para mais detalhes.');
+                return;
+            }
+
             const novaLinha = document.createElement('tr');
             const dados = [
-                formAbastecimento.viatura_abastecimento.value,
-                new Date(formAbastecimento.data_abastecimento.value).toLocaleDateString('pt-BR'),
-                kmAbastecimento.value,
-                kmAtual.value,
-                litros.value,
-                kmRodadoInput.value,
-                mediaInput.value,
+                viatura,
+                new Date(data).toLocaleDateString('pt-BR'),
+                km_abastecimento,
+                km_atual,
+                litros,
+                km_rodado,
+                media.toFixed(2),
             ];
             dados.forEach(function (dado) {
                 const td = document.createElement('td');
@@ -360,21 +399,13 @@
 
     function salvarDados() {
         const tabelaSaidasBody = document.getElementById('tabelaSaidasBody');
-        const tabelaAbastecimentoElement = document.getElementById('tabelaAbastecimento');
-        const tabelaAbastecimentoBody = tabelaAbastecimentoElement
-            ? tabelaAbastecimentoElement.querySelector('tbody')
-            : null;
 
         if (tabelaSaidasBody) {
             localStorage.setItem('saidasViaturas', tabelaSaidasBody.innerHTML);
         }
-
-        if (tabelaAbastecimentoBody) {
-            localStorage.setItem('abastecimentosViaturas', tabelaAbastecimentoBody.innerHTML);
-        }
     }
 
-    function carregarDados() {
+    async function carregarDados() {
         const tabelaSaidasBody = document.getElementById('tabelaSaidasBody');
         const tabelaAbastecimentoElement = document.getElementById('tabelaAbastecimento');
         const tabelaAbastecimentoBody = tabelaAbastecimentoElement
@@ -382,14 +413,38 @@
             : null;
 
         const saidasHTML = localStorage.getItem('saidasViaturas');
-        const abastecimentosHTML = localStorage.getItem('abastecimentosViaturas');
 
         if (saidasHTML && tabelaSaidasBody) {
             tabelaSaidasBody.innerHTML = saidasHTML;
         }
 
-        if (abastecimentosHTML && tabelaAbastecimentoBody) {
-            tabelaAbastecimentoBody.innerHTML = abastecimentosHTML;
+        if (tabelaAbastecimentoBody) {
+            const { data, error } = await supabase.from('abastecimentos').select('*');
+
+            if (error) {
+                console.error('Erro ao carregar abastecimentos:', error);
+                return;
+            }
+
+            tabelaAbastecimentoBody.innerHTML = '';
+            data.forEach(abastecimento => {
+                const novaLinha = document.createElement('tr');
+                const dados = [
+                    abastecimento.viatura,
+                    new Date(abastecimento.data).toLocaleDateString('pt-BR'),
+                    abastecimento.km_abastecimento,
+                    abastecimento.km_atual,
+                    abastecimento.litros,
+                    abastecimento.km_rodado,
+                    abastecimento.media,
+                ];
+                dados.forEach(function (dado) {
+                    const td = document.createElement('td');
+                    td.textContent = dado || '-';
+                    novaLinha.appendChild(td);
+                });
+                tabelaAbastecimentoBody.appendChild(novaLinha);
+            });
         }
     }
 

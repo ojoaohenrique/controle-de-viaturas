@@ -283,10 +283,10 @@
     <script src="js/viaturas.js"></script>
     <script src="js/pwa.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", async function () {
             requireAuth();
             renderHeaderUsuario();
-            initSistema();
+            await initSistema();
             registerPWA();
         });
     </script>
